@@ -80,6 +80,7 @@ impl Contract for EventContract {
                 )
                 .await
             }
+            Operation::DeleteEvent { key } => self.execute_delete_event_operation(key).await,
         };
 
         self.runtime.send_message(destination, message);
@@ -98,6 +99,7 @@ impl Contract for EventContract {
                 .runtime
                 .unsubscribe(id.chain_id, ChannelName::from(EVENTS_CHANNEL.to_vec())),
             Message::Events { count, events } => self.execute_events_message(id, count, events),
+            Message::EventDeleted => self.execute_event_deleted_message(id),
         }
     }
 
@@ -144,17 +146,28 @@ impl EventContract {
         )
     }
 
-    fn execute_events_message(&mut self, message_id: MessageId, count: u64, events: Vec<MyEvent>) {
+    fn execute_events_message(&mut self, _message_id: MessageId, count: u64, events: Vec<MyEvent>) {
         for (index, event) in (0..count).rev().zip(events) {
-            let key = Key {
-                timestamp: event.timestamp,
-                author: message_id.chain_id,
-                index,
-            };
+            let key = Key { index };
             self.state
                 .new_events
                 .insert(&key, event)
                 .expect("Inserting event failed");
         }
+    }
+
+    async fn execute_delete_event_operation(&mut self, key: Key) -> (Destination, Message) {
+        self.state
+            .new_events
+            .remove(&key)
+            .expect("Failed to delete event");
+        (
+            ChannelName::from(EVENTS_CHANNEL.to_vec()).into(),
+            Message::EventDeleted,
+        )
+    }
+
+    fn execute_event_deleted_message(&mut self, _message_id: MessageId) {
+        // No action required for the moment
     }
 }

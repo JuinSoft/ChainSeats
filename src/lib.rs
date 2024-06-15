@@ -34,6 +34,9 @@ pub enum Operation {
         participants: u32,
         image_url: String,
     },
+    DeleteEvent {
+        key: Key,
+    },
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -41,6 +44,7 @@ pub enum Message {
     SubscribeEvent,
     UnsubscribeEvent,
     Events { count: u64, events: Vec<MyEvent> },
+    EventDeleted,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize, SimpleObject)]
@@ -65,32 +69,23 @@ pub struct Event {
     pub image_url: String,
 }
 
-/// Disclaimer: Below code is refered from Linera examples from Github repo
-/// A key by which a event is indexed.
+// key by which a event is indexed.
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, SimpleObject, InputObject)]
 #[graphql(input_name = "KeyInput")]
 pub struct Key {
-    pub timestamp: Timestamp,
-    pub author: ChainId,
     pub index: u64,
 }
 
 // Serialize keys
 impl CustomSerialize for Key {
     fn to_custom_bytes(&self) -> Result<Vec<u8>, ViewError> {
-        let data = (
-            (!self.timestamp.micros()).to_be_bytes(),
-            &self.author,
-            (!self.index).to_be_bytes(),
-        );
+        let data = ((!self.index).to_be_bytes(),);
         Ok(bcs::to_bytes(&data)?)
     }
 
     fn from_custom_bytes(short_key: &[u8]) -> Result<Self, ViewError> {
-        let (time_bytes, author, idx_bytes) = (bcs::from_bytes(short_key))?;
+        let idx_bytes = (bcs::from_bytes(short_key))?;
         Ok(Self {
-            timestamp: Timestamp::from(!u64::from_be_bytes(time_bytes)),
-            author,
             index: !u64::from_be_bytes(idx_bytes),
         })
     }
