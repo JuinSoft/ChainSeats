@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { CREATE_EVENT } from '../graphql/queries';
+import { CREATE_EVENT, MY_EVENTS } from '../graphql/queries';
+import { ToastContainer, toast } from 'react-toastify';
 
 const CreateEvent = () => {
-    const [createEvent] = useMutation(CREATE_EVENT);
+    const [createEvent] = useMutation(CREATE_EVENT, {
+        refetchQueries: [{ query: MY_EVENTS }],
+    });
     const [formData, setFormData] = useState({
         name: '',
         place: '',
@@ -29,8 +32,9 @@ const CreateEvent = () => {
                     imageUrl: formData.imageUrl,
                 },
             });
+            toast.success('Event created successfully!');
         } catch (error) {
-            console.error('Error creating event:', error);
+            toast.error('Error creating event!');
         }
     };
 
@@ -38,12 +42,6 @@ const CreateEvent = () => {
         <div className="bg-gray-800 p-4 rounded-md">
             <h2 className="text-xl font-bold mb-2">Create Event</h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-2">
-                {/* <input
-                    name="time"
-                    onChange={handleChange}
-                    placeholder="Time"
-                    className="bg-gray-700 text-white p-2 rounded-md"
-                /> */}
                 <input
                     name="name"
                     onChange={handleChange}

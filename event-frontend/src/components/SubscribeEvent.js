@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { SUBSCRIBE_EVENT } from '../graphql/queries';
+import { SUBSCRIBE_EVENT, GET_EVENTS } from '../graphql/queries';
+import { ToastContainer, toast } from 'react-toastify';
 
 const SubscribeEvent = () => {
     const [subscribeEvent] = useMutation(SUBSCRIBE_EVENT);
@@ -9,9 +10,9 @@ const SubscribeEvent = () => {
     const handleSubscribe = async () => {
         try {
             await subscribeEvent({ variables: { chainId } });
-            console.log('Subscribed to events');
+            toast.success('Subscribed to events successfully!');
         } catch (error) {
-            console.error('Error subscribing to events:', error);
+            toast.error('Error subscribing to events!');
         }
     };
 

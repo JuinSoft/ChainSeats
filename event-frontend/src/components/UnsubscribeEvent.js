@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { UNSUBSCRIBE_EVENT } from '../graphql/queries';
+import { ToastContainer, toast } from 'react-toastify';
 
 const UnsubscribeEvent = () => {
     const [unsubscribeEvent] = useMutation(UNSUBSCRIBE_EVENT);
@@ -9,9 +10,9 @@ const UnsubscribeEvent = () => {
     const handleUnsubscribe = async () => {
         try {
             await unsubscribeEvent({ variables: { chainId } });
-            console.log('Unsubscribed from events');
+            toast.success('Unsubscribed from events successfully!');
         } catch (error) {
-            console.error('Error unsubscribing from events:', error);
+            toast.error('Error unsubscribing from events!');
         }
     };
 
